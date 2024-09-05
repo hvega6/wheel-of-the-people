@@ -27,28 +27,22 @@ function updateWheel() {
     const totalNames = names.length;
     const minPercentage = 50; // Minimum percentage per name (100%/2)
     
-    let remainingPercentage = 100;
-    let remainingNames = totalNames;
+    let totalPercentage = Math.max(100, totalNames * minPercentage);
+    let startAngle = 0;
 
     names.forEach((name, index) => {
         const slice = document.createElement('div');
         slice.className = 'slice';
         
         // Calculate percentage for this slice
-        let percentage;
-        if (remainingNames === 1) {
-            percentage = remainingPercentage;
-        } else {
-            percentage = Math.max(minPercentage, remainingPercentage / remainingNames);
-        }
+        let percentage = (minPercentage / totalPercentage) * 100;
         
         const sliceAngle = (percentage / 100) * 360;
-        const rotateAngle = index === 0 ? 0 : -((100 - remainingPercentage) / 100) * 360;
 
-        slice.style.transform = `rotate(${rotateAngle}deg)`;
+        slice.style.transform = `rotate(${startAngle}deg)`;
         slice.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%)`;
-        slice.style.width = `${percentage}%`;
-        slice.style.height = `${percentage}%`;
+        slice.style.width = '100%';
+        slice.style.height = '100%';
         
         const nameSpan = document.createElement('span');
         nameSpan.textContent = name;
@@ -57,8 +51,7 @@ function updateWheel() {
         slice.appendChild(nameSpan);
         wheel.appendChild(slice);
 
-        remainingPercentage -= percentage;
-        remainingNames--;
+        startAngle += sliceAngle;
     });
 }
 
