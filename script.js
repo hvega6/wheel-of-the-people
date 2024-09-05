@@ -1,74 +1,93 @@
-let names = [];
 const wheel = document.getElementById('wheel');
-const spinButton = document.getElementById('spinButton');
-const addNameButton = document.getElementById('addNameButton');
 const nameInput = document.getElementById('nameInput');
-const winnerModal = document.getElementById('winnerModal');
-const winnerMessage = document.getElementById('winnerMessage');
-const closeTabButton = document.getElementById('closeTabButton');
-const removeWinnerButton = document.getElementById('removeWinnerButton');
+const addNameButton = document.getElementById('addNameButton');
+const spinButton = document.getElementById('spinButton');
+const wheelFullMessage = document.getElementById('wheelFullMessage');
 
-// Function to add name to the wheel
+const names = [];
+const maxNames = 12; // Set the maximum number of names
+let spinning = false;
+
+addNameButton.addEventListener('click', addName);
+spinButton.addEventListener('click', spinWheel);
+
 function addName() {
     const name = nameInput.value.trim();
-    if (name) {
+    if (name && names.length < maxNames) {
         names.push(name);
         updateWheel();
-        nameInput.value = ''; // Clear input
+        nameInput.value = '';
+    } else if (names.length >= maxNames) {
+        wheelFullMessage.style.display = 'block';
     }
 }
 
-// Event listener for adding name on button click
-addNameButton.addEventListener('click', addName);
-
-// Event listener for adding name on Enter key press
-nameInput.addEventListener('keypress', (event) => {
-    if (event.key === 'Enter') {
-        addName();
-    }
-});
-
-spinButton.addEventListener('click', () => {
-    if (names.length === 0) {
-        alert("Please add names to the wheel.");
-        return;
-    }
-    const randomDegree = Math.floor(Math.random() * 360 + 3600); // Spin multiple times
-    wheel.style.transition = 'transform 4s cubic-bezier(0.33, 1, 0.68, 1)';
-    wheel.style.transform = `rotate(${randomDegree}deg)`;
-    
-    // Simulate selection after spin
-    setTimeout(() => {
-        const selectedIndex = Math.floor((randomDegree % 360) / (360 / names.length));
-        showWinner(names[selectedIndex]);
-    }, 4000); // Match duration of spin
-});
-
 function updateWheel() {
-    wheel.innerHTML = ''; // Clear existing names
-    const angleStep = 360 / names.length; // Calculate angle for each name
+    wheel.innerHTML = '';
+    const totalNames = names.length;
+    const minPercentage = 50; // Minimum percentage per name (100%/2)
+    
+    let remainingPercentage = 100;
+    let remainingNames = totalNames;
+
     names.forEach((name, index) => {
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'name';
-        nameDiv.style.setProperty('--i', index);
-        nameDiv.style.transform = `rotate(${index * angleStep}deg) translateX(100%)`; // Position each name
-        nameDiv.textContent = name;
-        wheel.appendChild(nameDiv);
+        const slice = document.createElement('div');
+        slice.className = 'slice';
+        
+        // Calculate percentage for this slice
+        let percentage;
+        if (remainingNames === 1) {
+            percentage = remainingPercentage;
+        } else {
+            percentage = Math.max(minPercentage, remainingPercentage / remainingNames);
+        }
+        
+        const sliceAngle = (percentage / 100) * 360;
+        const rotateAngle = index === 0 ? 0 : -((100 - remainingPercentage) / 100) * 360;
+
+        slice.style.transform = `rotate(${rotateAngle}deg)`;
+        slice.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%)`;
+        slice.style.width = `${percentage}%`;
+        slice.style.height = `${percentage}%`;
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = name;
+        nameSpan.style.transform = `rotate(${sliceAngle / 2}deg)`;
+        
+        slice.appendChild(nameSpan);
+        wheel.appendChild(slice);
+
+        remainingPercentage -= percentage;
+        remainingNames--;
     });
 }
 
-function showWinner(winner) {
-    winnerMessage.textContent = `We have a winner! ${winner}`;
-    winnerModal.style.display = 'flex'; // Show modal
+function spinWheel() {
+    if (spinning || names.length < 2) return;
+    spinning = true;
+    spinButton.disabled = true;
+
+    const spins = 5 + Math.floor(Math.random() * 5); // 5 to 9 full spins
+    const extraDegrees = Math.floor(Math.random() * 360);
+    const totalDegrees = spins * 360 + extraDegrees;
+    
+    wheel.style.transition = `transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)`;
+    wheel.style.transform = `rotate(${totalDegrees}deg)`;
+
+    setTimeout(() => {
+        spinning = false;
+        spinButton.disabled = false;
+        const winnerIndex = Math.floor(names.length - (extraDegrees / (360 / names.length))) % names.length;
+        showWinner(names[winnerIndex]);
+    }, 5000);
 }
 
-closeTabButton.addEventListener('click', () => {
-    window.close(); // Close the tab
-});
+function showWinner(winner) {
+    const modal = document.getElementById('winnerModal');
+    const winnerName = document.getElementById('winnerName');
+    winnerName.textContent = winner;
+    modal.style.display = 'flex';
+}
 
-removeWinnerButton.addEventListener('click', () => {
-    const winner = winnerMessage.textContent.split(' ')[3]; // Extract winner's name
-    names = names.filter(name => name !== winner); // Remove winner from list
-    updateWheel(); // Update the wheel
-    winnerModal.style.display = 'none'; // Hide modal
-});
+// Initialize the wheel
+updateWheel();

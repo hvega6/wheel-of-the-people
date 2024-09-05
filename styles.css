@@ -14,12 +14,12 @@ body {
 .wheel {
     width: 300px;
     height: 300px;
-    border: 16px solid #4CAF50;
     border-radius: 50%;
     position: relative;
-    transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
     overflow: hidden;
-    animation: spin 10s linear infinite; /* Continuous spinning */
+    transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+    background-color: #ccc;
+    border: 10px solid #333;
 }
 
 @keyframes spin {
@@ -71,4 +71,32 @@ body {
     padding: 20px;
     border-radius: 5px;
     text-align: center;
+}
+
+.slice {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform-origin: 0% 100%;
+    border: 2px solid #fff;
+    box-sizing: border-box;
+    background: linear-gradient(to right, #ff6b6b, #feca57);
+    overflow: hidden;
+}
+
+.slice:nth-child(even) {
+    background: linear-gradient(to right, #48dbfb, #ff9ff3);
+}
+
+.slice span {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    text-align: center;
+    transform-origin: center;
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+    transform: translateY(-50%);
 }
